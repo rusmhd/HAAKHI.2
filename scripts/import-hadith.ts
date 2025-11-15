@@ -53,9 +53,10 @@ async function fetchHadithsFromGitHub(fileUrl: string): Promise<Hadith[]> {
     throw new Error(`Failed to fetch ${fileUrl}: ${response.statusText}`);
   }
 
-  const data = await response.json();
-  console.log(`Fetched ${data.length} hadiths from file`);
-  return data;
+// After
+const data = await response.json() as Hadith[];
+console.log(`Fetched ${data.length} hadiths from file`);
+return data;
 }
 
 async function importHadithsBatch(hadiths: Hadith[]) {

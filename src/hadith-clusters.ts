@@ -1,5 +1,5 @@
 // hadith-clusters.ts
-// Granular clusters + semantic fingerprints for 34 k hadiths
+// Granular clusters + semantic fingerprints for 34k hadiths
 
 export interface Cluster {
   id: string;                 // e.g. "salah-times"
@@ -196,3 +196,28 @@ export const CLUSTER_MAP: Record<string, Cluster[]> = {
   health: HEALTH_CLUSTERS,
   governance: GOVERNANCE_CLUSTERS
 };
+
+// Flatten all clusters for easy access
+export const ALL_CLUSTERS: Cluster[] = Object.values(CLUSTER_MAP).flat();
+
+// Add the missing function that your script expects
+export function bestClusterForHadith(text: string, _topK: number = 1): string | null {
+  if (!text) return null;
+  
+  const lowerText = text.toLowerCase();
+  let bestMatch: { id: string; score: number } | null = null;
+  
+  for (const cluster of ALL_CLUSTERS) {
+    let score = 0;
+    for (const keyword of cluster.keywords) {
+      if (lowerText.includes(keyword.toLowerCase())) {
+        score++;
+      }
+    }
+    if (score > 0 && (!bestMatch || score > bestMatch.score)) {
+      bestMatch = { id: cluster.id, score };
+    }
+  }
+  
+  return bestMatch?.id || null;
+}

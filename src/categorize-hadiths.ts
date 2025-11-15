@@ -1,11 +1,11 @@
 // ************************************************************
-//  categorize-hadiths.ts   –  34 k hadith cluster edition
+//  categorize-hadiths.ts   – 34k hadith cluster edition
 // ************************************************************
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 
 // NEW: granular clusters + optional cosine fallback
-import { bestClusterForHadith, ALL_CLUSTERS } from './hadith-clusters';
+import { bestClusterForHadith } from './hadith-clusters';
 import { bestCluster } from './cluster-matcher';
 
 dotenv.config();
@@ -16,21 +16,57 @@ const supabase = createClient(
 );
 
 /* ============================================================
-   COMPREHENSIVE KEYWORD MAP – unchanged from your original
+   COMPREHENSIVE KEYWORD MAP
    ============================================================ */
 const COMPREHENSIVE_KEYWORDS = {
-  aqeedah: { /* … full object untouched … */ },
-  ibaadah: { /* … full object untouched … */ },
-  muamalat: { /* … full object untouched … */ },
-  family: { /* … full object untouched … */ },
-  akhlaq: { /* … full object untouched … */ },
-  'halal-haram': { /* … full object untouched … */ },
-  knowledge: { /* … full object untouched … */ },
-  jihad: { /* … full object untouched … */ },
-  eschatology: { /* … full object untouched … */ },
-  seerah: { /* … full object untouched … */ },
-  health: { /* … full object untouched … */ },
-  governance: { /* … full object untouched … */ }
+  aqeedah: {
+    primary: ['allah', 'god', 'belief', 'faith', 'iman', 'tawhid', 'oneness', 'creator', 'lord', 'religion'],
+    secondary: ['qadr', 'destiny', 'angel', 'jannah', 'hell', 'hereafter', 'resurrection', 'judgement']
+  },
+  ibaadah: {
+    primary: ['salat', 'prayer', 'zakat', 'charity', 'hajj', 'pilgrimage', 'sawm', 'fasting', 'ramadan'],
+    secondary: ['wudu', 'ablution', 'mosque', 'masjid', 'quran', 'recitation', 'sunnah', 'nafl']
+  },
+  muamalat: {
+    primary: ['trade', 'business', 'transaction', 'contract', 'debt', 'loan', 'wealth', 'property'],
+    secondary: ['rent', 'wage', 'inheritance', 'partnership', 'interest', 'riba', 'sale', 'purchase']
+  },
+  family: {
+    primary: ['marriage', 'wife', 'husband', 'child', 'parent', 'divorce', 'nikah', 'spouse'],
+    secondary: ['inheritance', 'maintenance', 'custody', 'guardian', 'family', 'widow', 'orphan']
+  },
+  akhlaq: {
+    primary: ['truth', 'lie', 'honesty', 'patience', 'sabr', 'anger', 'forgiveness', 'character'],
+    secondary: ['backbite', 'gossip', 'generosity', 'humility', 'arrogance', 'pride', 'manners']
+  },
+  'halal-haram': {
+    primary: ['halal', 'haram', 'forbidden', 'lawful', 'prohibited', 'allowed', 'permissible'],
+    secondary: ['food', 'drink', 'slaughter', 'intoxicant', 'wine', 'pork', 'meat', 'animal']
+  },
+  knowledge: {
+    primary: ['knowledge', 'learn', 'study', 'teach', 'scholar', 'student', 'education'],
+    secondary: ['quran', 'hadith', 'ijtihad', 'fatwa', 'ruling', 'evidence', 'proof', 'wisdom']
+  },
+  jihad: {
+    primary: ['jihad', 'struggle', 'fight', 'battle', 'defend', 'army', 'war', 'military'],
+    secondary: ['mujahid', 'martyr', 'shahid', 'expedition', 'campaign', 'weapon', 'sword']
+  },
+  eschatology: {
+    primary: ['dajjal', 'mahdi', 'signs', 'hour', 'judgement', 'resurrection', 'paradise', 'hell'],
+    secondary: ['grave', 'death', 'angel', 'scale', 'bridge', 'sirat', 'account', 'destiny']
+  },
+  seerah: {
+    primary: ['prophet', 'messenger', 'muhammad', 'makkan', 'madinan', 'hijra', 'companion'],
+    secondary: ['battle', 'expedition', 'miracle', 'revelation', 'quraysh', 'tribe', 'sahabi']
+  },
+  health: {
+    primary: ['medicine', 'cure', 'treatment', 'disease', 'sickness', 'health', 'remedy'],
+    secondary: ['honey', 'black seed', 'cupping', 'hijama', 'diet', 'moderation', 'clean']
+  },
+  governance: {
+    primary: ['ruler', 'leader', 'imam', 'caliph', 'justice', 'court', 'judge', 'law'],
+    secondary: ['obedience', 'consultation', 'shura', 'testimony', 'witness', 'political', 'authority']
+  }
 } as const;
 
 /* ============================================================
@@ -38,15 +74,26 @@ const COMPREHENSIVE_KEYWORDS = {
    ============================================================ */
 function extractAllKeywords(): Map<string, { category: string; subcategory: string; weight: number }> {
   const oldMap = new Map<string, { category: string; subcategory: string; weight: number }>();
-  for (const [category, subObj] of Object.entries(COMPREHENSIVE_KEYWORDS)) {
-    for (const [subcat, kwList] of Object.entries(subObj)) {
+  
+  // FIX: Use type-safe iteration without unsafe assertions
+  const categories = Object.keys(COMPREHENSIVE_KEYWORDS) as Array<keyof typeof COMPREHENSIVE_KEYWORDS>;
+  for (const category of categories) {
+    const categoryData = COMPREHENSIVE_KEYWORDS[category];
+    const subcats = Object.keys(categoryData) as Array<keyof typeof categoryData>;
+    for (const subcat of subcats) {
+      const kwList = categoryData[subcat];
       const weight = subcat === 'primary' ? 2.0 : 1.0;
-      for (const kw of kwList) {
+      
+      // FIX: Spread operator creates mutable array from readonly tuples
+      for (const kw of [...kwList]) {
         const key = kw.toLowerCase();
-        if (!oldMap.has(key)) oldMap.set(key, { category, subcategory: subcat, weight });
+        if (!oldMap.has(key)) {
+          oldMap.set(key, { category, subcategory: subcat, weight });
+        }
       }
     }
   }
+  
   return oldMap;
 }
 
