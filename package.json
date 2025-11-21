@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "homepage": "https://rusmhd.github.io/HAAKHI.2", 
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -34,3 +35,4 @@
     "vite": "^6.0.11"
   }
 }
+
