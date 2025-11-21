@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/categorize-hadiths.ts","./src/cluster-matcher.ts","./src/hadith-clusters.ts","./src/main.tsx","./src/vite-env.d.ts","./src/components/authmodal.tsx","./src/components/homepage.tsx","./src/components/verifypage.tsx","./src/lib/supabase.tsx"],"version":"5.9.3"}

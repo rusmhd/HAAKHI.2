@@ -4,6 +4,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Define custom classes manually if not using Tailwind plugins */
+.glass-effect {
+  @apply bg-black/60 backdrop-blur-sm border border-gray-800;
+}
+
+.button-hover:hover {
+  @apply transform scale-105 transition-transform duration-200;
+}
+
 @layer base {
   :root {
     --background: 0 0% 0%;
